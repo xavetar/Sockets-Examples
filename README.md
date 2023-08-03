@@ -15,7 +15,7 @@ Control messages are implemented using the `cmsghdr` structure, which is part of
     - INET/SOCK_STREAM - IPPROTO_TCP/SOCK_DGRAM - IPPROTO_UDP
     - INET6/SOCK_STREAM - IPPROTO_TCP/SOCK_DGRAM - IPPROTO_UDP
 - ✓ SCM_CREDENTIALS (0x03): Process credentials (struct ucred)
-    - LU/SOCK_STREAM - UNIX/SOCK_DGRAM - UNIX
+    - LU/SOCK_STREAM - UNIX/SOCK_DGRAM - UNIX/SOCK_SEQPACKET - UNIX
 - × SCM_SECURITY (0x04): Security label
     - NOT IMPLEMENTED
 - × SCM_PIDFD (0x05): PID file descriptor (int)
@@ -49,12 +49,12 @@ Control messages are implemented using the `cmsghdr` structure, which is part of
 #### FreeBSD
 
 - ✓ SCM_RIGHTS (0x01): Access rights (array of file descriptors)
-    - LU/SOCK_STREAM - UNIX/SOCK_DGRAM - UNIX
+    - LU/SOCK_STREAM - UNIX/SOCK_DGRAM - UNIX/SOCK_SEQPACKET - UNIX
 - ✓ SCM_TIMESTAMP (0x02): Timestamp (struct timeval)
     - INET/SOCK_DGRAM - IPPROTO_UDP
     - INET6/SOCK_DGRAM - IPPROTO_UDP
 - ✓ SCM_CREDS (0x03): Process creds (struct cmsgcred)
-    - LU/SOCK_STREAM - UNIX/SOCK_DGRAM - UNIX
+    - LU/SOCK_STREAM - UNIX/SOCK_DGRAM - UNIX/SOCK_SEQPACKET - UNIX
 - ✓ SCM_BINTIME (0x04): Timestamp (struct bintime)
     - INET/SOCK_DGRAM - IPPROTO_UDP
 - ✓ SCM_REALTIME (0x05): Timestamp (struct timespec)
@@ -66,7 +66,7 @@ Control messages are implemented using the `cmsghdr` structure, which is part of
 - ✓ SCM_TIME_INFO * (0x07): Timestamp info
     - Supported only with certain types of network devices on FreeBSD
 - ✓ SCM_CREDS2 (0x08): Process creds (struct sockcred2)
-    - LU/SOCK_STREAM - UNIX/SOCK_DGRAM - UNIX
+    - LU/SOCK_STREAM - UNIX/SOCK_DGRAM - UNIX/SOCK_SEQPACKET - UNIX
 
 #### Time Stamping Options (BSD)
 

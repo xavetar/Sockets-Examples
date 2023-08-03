@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.0...999999.0)
+
+if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD" OR CMAKE_SYSTEM_NAME MATCHES "OpenBSD" OR CMAKE_SYSTEM_NAME MATCHES "NetBSD")
+    add_subdirectory(BSD)
+elseif (CMAKE_SYSTEM_NAME MATCHES "Haiku")
+    add_subdirectory(Haiku)
+elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    add_subdirectory(Linux)
+elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+    add_subdirectory(XNU)
+endif ()
