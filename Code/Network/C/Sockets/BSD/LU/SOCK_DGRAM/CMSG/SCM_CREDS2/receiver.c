@@ -34,7 +34,7 @@ void debug_sock_unix(const socklen_t* address_size, const struct sockaddr_un* ad
     printf("Sender family (%s): %hu\n\n", from, address->sun_family);
 }
 
-int decode_socket_credential2(const struct sockcred2 *socket_credential2) {
+int decode_socket_credential2(struct sockcred2 *socket_credential2) {
     printf("Version: %d\n", socket_credential2->sc_version);
     printf("Sender PID: %d\n", socket_credential2->sc_pid);
     printf("Sender UID: %d\n", socket_credential2->sc_uid);
@@ -48,6 +48,9 @@ int decode_socket_credential2(const struct sockcred2 *socket_credential2) {
     }
     printf("\n");
 
+    // Clean memory
+    free(socket_credential2);
+
     return 0;
 }
 
@@ -56,6 +59,10 @@ int process_cmsg(struct cmsghdr* cmsg) {
         if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_CREDS2) {
             // Declaration and assign control message credential
             struct sockcred2 *socket_credential2 = calloc(1, sizeof(struct sockcred2));
+            if (socket_credential2 == NULL) {
+                perror("\n\ncalloc");
+                exit(EXIT_FAILURE);
+            }
 
             memcpy(socket_credential2, CMSG_DATA(cmsg), sizeof(struct sockcred2));
 
@@ -162,6 +169,7 @@ int main() {
     // Clean memory
     free(cmsg);
     free(iov_buffer);
+    free(control_buffer);
 
     return 0;
 }

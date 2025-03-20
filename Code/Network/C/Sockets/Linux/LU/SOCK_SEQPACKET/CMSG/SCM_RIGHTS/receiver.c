@@ -35,12 +35,16 @@ int read_descriptors(int* cmsg_descriptors, size_t cmsg_count_descriptors) {
     size_t count_descriptors = 0;
     // Set buffer for read data
     char *data = calloc((size_t) BUFF_SIZE, sizeof(char));
+    if (data == NULL) {
+        perror("\n\ncalloc");
+        exit(EXIT_FAILURE);
+    }
 
     printf("Count of cmsg file descriptors: %lu\n", cmsg_count_descriptors);
 
     for (int i = 0; i < cmsg_count_descriptors; i++) {
         // Get file descriptor
-        int *fd = &cmsg_descriptors[i];
+        const int *fd = &cmsg_descriptors[i];
 
         // We check the file descriptor on NULL, because after alignment we can get a 0 descriptor.
         if (*fd != 0) {
@@ -75,6 +79,7 @@ int read_descriptors(int* cmsg_descriptors, size_t cmsg_count_descriptors) {
 
     // Clean memory
     free(data);
+    free(cmsg_descriptors);
 
     return 0;
 }
@@ -97,6 +102,10 @@ int process_cmsg(struct cmsghdr* cmsg) {
 
             // Declaration and assign array of file descriptors
             int *cmsg_descriptors = calloc(cmsg_count_descriptors, sizeof(int));
+            if (cmsg_descriptors == NULL) {
+                perror("\n\ncalloc");
+                exit(EXIT_FAILURE);
+            }
 
             memcpy(cmsg_descriptors, CMSG_DATA(cmsg), sizeof(int) * cmsg_count_descriptors);
 
@@ -218,6 +227,7 @@ int main() {
     // Clean memory
     free(cmsg);
     free(iov_buffer);
+    free(control_buffer);
 
     // Remove socket
     unlink(SOCKET_PATH);

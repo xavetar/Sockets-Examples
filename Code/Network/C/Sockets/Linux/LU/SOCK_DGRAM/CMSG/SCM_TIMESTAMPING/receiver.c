@@ -53,6 +53,10 @@ int decode_timespec(const struct timespec* timestamp) {
            time_info->tm_mday, time_info->tm_mon + 1, time_info->tm_year + 1900,
            time_info->tm_hour, time_info->tm_min, time_info->tm_sec, timestamp->tv_nsec);
 
+    // Clean memory
+    free(time_info);
+    free(time_str);
+
     return 0;
 }
 
@@ -66,6 +70,9 @@ int decode_scm_timestamping(struct scm_timestamping* ts) {
         printf("\n");
     }
 
+    // Clean memory
+    free(ts);
+
     return 0;
 }
 
@@ -74,6 +81,10 @@ int process_cmsg(struct cmsghdr* cmsg) {
         if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_TIMESTAMPING) {
             // Declaration and assign timestamp
             struct scm_timestamping *ts = calloc(1, sizeof(struct scm_timestamping));
+            if (ts == NULL) {
+                perror("\n\ncalloc");
+                exit(EXIT_FAILURE);
+            }
 
             memcpy(ts, CMSG_DATA(cmsg), sizeof(struct scm_timestamping));
 
@@ -178,6 +189,7 @@ int main() {
     // Clean memory
     free(cmsg);
     free(iov_buffer);
+    free(control_buffer);
 
     return 0;
 }

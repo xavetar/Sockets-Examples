@@ -42,6 +42,9 @@ void debug_sock_v6(const socklen_t* address_size, const struct sockaddr_in6* add
 
     printf("Sender flow info (%s):: %hu\n", from, ntohs(address->sin6_scope_id));
     printf("\n");
+
+    // Clean memory
+    free(ip_str);
 }
 
 int main() {

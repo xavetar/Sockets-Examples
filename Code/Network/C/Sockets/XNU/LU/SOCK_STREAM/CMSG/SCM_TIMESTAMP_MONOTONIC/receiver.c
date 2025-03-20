@@ -34,7 +34,7 @@ void debug_sock_unix(const socklen_t* address_size, const struct sockaddr_un* ad
     printf("Sender family (%s): %hu\n\n", from, address->sun_family);
 }
 
-int decode_uptime(const uint64_t *uptime) {
+int decode_uptime(uint64_t* uptime) {
     // SCM_TIMESTAMP_MONOTONIC - is CLOCK_UPTIME_RAW
     // https://developer.apple.com/library/archive/qa/qa1398/_index.html
     // https://github.com/apple-oss-distributions/xnu/blob/main/bsd/netinet/ip_input.c#L3766
@@ -60,6 +60,9 @@ int decode_uptime(const uint64_t *uptime) {
     printf("Uptime (in second): %02llu\n", seconds_total);
     printf("Uptime (hours:minutes::seconds): %02llu:%02llu:%02llu\n\n", hours, minutes, seconds);
 
+    // Clean memory
+    free(uptime);
+
     return 0;
 }
 
@@ -68,6 +71,10 @@ int process_cmsg(struct cmsghdr* cmsg) {
         if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_TIMESTAMP_MONOTONIC) {
             // Declaration and assign timestamp
             uint64_t *timestamp = calloc(1, sizeof(uint64_t));
+            if (timestamp == NULL) {
+                perror("\n\ncalloc");
+                exit(EXIT_FAILURE);
+            }
 
             memcpy(timestamp, CMSG_DATA(cmsg), sizeof(uint64_t));
 
@@ -198,6 +205,7 @@ int main() {
     // Clean memory
     free(cmsg);
     free(iov_buffer);
+    free(control_buffer);
 
     // Remove socket
     unlink(SOCKET_PATH);

@@ -47,9 +47,12 @@ void debug_sock_v4(const socklen_t* address_size, const struct sockaddr_in* addr
         printf("%hhu ", address->sin_zero[i]);
     }
     printf("\n\n");
+
+    // Clean memory
+    free(ip_str);
 }
 
-int decode_sock_timestamp_info(const struct sock_timestamp_info* sti_info) {
+int decode_sock_timestamp_info(struct sock_timestamp_info* sti_info) {
     printf("\nSTI Flags (st_info_flags): 0x%04x\n", sti_info->st_info_flags);
     printf("STI Hardware (ST_INFO_HW): %s\n", (sti_info->st_info_flags & ST_INFO_HW) ? "Yes" : "No");
     printf("STI Hardware High-Precision Record (ST_INFO_HW_HPREC): %s\n", (sti_info->st_info_flags & ST_INFO_HW_HPREC) ? "Yes" : "No");
@@ -61,6 +64,9 @@ int decode_sock_timestamp_info(const struct sock_timestamp_info* sti_info) {
             printf(", ");
     }
     printf("]\n\n");
+
+    // Clean memory
+    free(sti_info);
 
     return 0;
 }
@@ -92,6 +98,10 @@ int process_cmsg(struct cmsghdr* cmsg) {
         if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_BINTIME) {
             // Declaration and assign timeval
             struct bintime *timestamp = calloc(1, sizeof(struct bintime));
+            if (timestamp == NULL) {
+                perror("\n\ncalloc");
+                exit(EXIT_FAILURE);
+            }
 
             memcpy(timestamp, CMSG_DATA(cmsg), sizeof(struct bintime));
 
@@ -100,6 +110,10 @@ int process_cmsg(struct cmsghdr* cmsg) {
         if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_TIME_INFO) {
             // Declaration and assign socket timestamp info
             struct sock_timestamp_info *timestamp = calloc(1, sizeof(struct sock_timestamp_info));
+            if (timestamp == NULL) {
+                perror("\n\ncalloc");
+                exit(EXIT_FAILURE);
+            }
 
             memcpy(timestamp, CMSG_DATA(cmsg), sizeof(struct sock_timestamp_info));
 
@@ -203,6 +217,7 @@ int main() {
     // Clean memory
     free(cmsg);
     free(iov_buffer);
+    free(control_buffer);
 
     return 0;
 }

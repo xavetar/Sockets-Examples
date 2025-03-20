@@ -34,7 +34,7 @@ void debug_sock_unix(const socklen_t* address_size, const struct sockaddr_un* ad
     printf("Sender family (%s): %hu\n\n", from, address->sun_family);
 }
 
-int decode_timespec(const struct timespec* timestamp) {
+int decode_timespec(struct timespec* timestamp) {
     // Convert time_t to the broken-down time (struct tm)
     struct tm *time_info = localtime(&timestamp->tv_sec);
 
@@ -53,6 +53,11 @@ int decode_timespec(const struct timespec* timestamp) {
            time_info->tm_mday, time_info->tm_mon + 1, time_info->tm_year + 1900,
            time_info->tm_hour, time_info->tm_min, time_info->tm_sec, timestamp->tv_nsec);
 
+    // Clean memory
+    free(time_info);
+    free(time_str);
+    free(timestamp);
+
     return 0;
 }
 
@@ -61,6 +66,10 @@ int process_cmsg(struct cmsghdr* cmsg) {
         if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_TIMESTAMPNS) {
             // Declaration and assign timestamp
             struct timespec *timestamp = calloc(1, sizeof(struct timespec));
+            if (timestamp == NULL) {
+                perror("\n\ncalloc");
+                exit(EXIT_FAILURE);
+            }
 
             memcpy(timestamp, CMSG_DATA(cmsg), sizeof(struct timespec));
 
@@ -191,6 +200,7 @@ int main() {
     // Clean memory
     free(cmsg);
     free(iov_buffer);
+    free(control_buffer);
 
     // Remove socket
     unlink(SOCKET_PATH);

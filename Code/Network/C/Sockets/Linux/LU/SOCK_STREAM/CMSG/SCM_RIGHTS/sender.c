@@ -50,7 +50,8 @@ char* concat(const char* str1, const char* str2) {
 int* open_descriptors(char* folder_path, char** filenames, size_t* array_size) {
     // Declaration and assign current descriptor
     int fd = 0;
-    int *file_fds = calloc(0, 0);
+    // Logical allocate address in heap for realloc without size
+    int *file_fds = NULL;
 
     // Iteration on filenames
     for (void *i = (void *) 1; i != NULL;) {
@@ -61,28 +62,38 @@ int* open_descriptors(char* folder_path, char** filenames, size_t* array_size) {
 
         // Check current index of element on NULL
         if (filenames[index] != NULL) {
+            char *file_path = concat(folder_path, filenames[index]);
 
             // Open file and get file descriptor
-            fd = open(concat(folder_path, filenames[index]), O_RDONLY);
+            fd = open(file_path, O_RDONLY);
             if (fd == -1) {
                 perror("\n\nopen");
                 exit(EXIT_FAILURE);
             }
+
             // Realloc memory for array of file descriptors
-            if (realloc(file_fds, (*array_size + 1) * sizeof(int)) == NULL) {
+            int *new_mem_file_fds = realloc(file_fds, (*array_size + 1) * sizeof(int));
+            if (new_mem_file_fds == NULL) {
                 perror("\n\nrealloc");
                 exit(EXIT_FAILURE);
             }
+            file_fds = new_mem_file_fds;
+
             // Assign file descriptor to array of file descriptors
             file_fds[*array_size] = fd;
+
             // Increase size of array
             *array_size += 1; i++;
+
             // Info about filename and array index
             if (!index) {
                 printf("Index::Filename: %li::%s", index, filenames[index]);
             } else {
                 printf(", %li::%s", index, filenames[index]);
             }
+
+            // Clean memory
+            free(file_path);
         } else {
             // Assign NULL pointer i for end iteration
             i = NULL;

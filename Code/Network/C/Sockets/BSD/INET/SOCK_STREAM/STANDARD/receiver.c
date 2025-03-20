@@ -44,6 +44,9 @@ void debug_sock_v4(const socklen_t* address_size, const struct sockaddr_in* addr
         printf("%hhu ", address->sin_zero[i]);
     }
     printf("\n\n");
+
+    // Clean memory
+    free(ip_str);
 }
 
 int main() {

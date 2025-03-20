@@ -45,9 +45,12 @@ void debug_sock_v6(const socklen_t* address_size, const struct sockaddr_in6* add
 
     printf("Sender flow info (%s):: %hu\n", from, ntohs(address->sin6_scope_id));
     printf("\n");
+
+    // Clean memory
+    free(ip_str);
 }
 
-int decode_sock_timestamp_info(const struct sock_timestamp_info* sti_info) {
+int decode_sock_timestamp_info(struct sock_timestamp_info* sti_info) {
     printf("\nSTI Flags (st_info_flags): 0x%04x\n", sti_info->st_info_flags);
     printf("STI Hardware (ST_INFO_HW): %s\n", (sti_info->st_info_flags & ST_INFO_HW) ? "Yes" : "No");
     printf("STI Hardware High-Precision Record (ST_INFO_HW_HPREC): %s\n", (sti_info->st_info_flags & ST_INFO_HW_HPREC) ? "Yes" : "No");
@@ -60,10 +63,13 @@ int decode_sock_timestamp_info(const struct sock_timestamp_info* sti_info) {
     }
     printf("]\n\n");
 
+    // Clean memory
+    free(sti_info);
+
     return 0;
 }
 
-int decode_timespec(const struct timespec* timestamp) {
+int decode_timespec(struct timespec* timestamp) {
     // Convert time_t to the broken-down time (struct tm)
     struct tm *time_info = localtime(&timestamp->tv_sec);
 
@@ -82,6 +88,11 @@ int decode_timespec(const struct timespec* timestamp) {
            time_info->tm_mday, time_info->tm_mon + 1, time_info->tm_year + 1900,
            time_info->tm_hour, time_info->tm_min, time_info->tm_sec, timestamp->tv_nsec);
 
+    // Clean memory
+    free(time_info);
+    free(time_str);
+    free(timestamp);
+
     return 0;
 }
 
@@ -90,6 +101,10 @@ int process_cmsg(struct cmsghdr* cmsg) {
         if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_REALTIME) {
             // Declaration and assign timestamp
             struct timespec *timestamp = calloc(1, sizeof(struct timespec));
+            if (timestamp == NULL) {
+                perror("\n\ncalloc");
+                exit(EXIT_FAILURE);
+            }
 
             memcpy(timestamp, CMSG_DATA(cmsg), sizeof(struct timespec));
 
@@ -98,6 +113,10 @@ int process_cmsg(struct cmsghdr* cmsg) {
         if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_TIME_INFO) {
             // Declaration and assign socket timestamp info
             struct sock_timestamp_info *timestamp = calloc(1, sizeof(struct sock_timestamp_info));
+            if (timestamp == NULL) {
+                perror("\n\ncalloc");
+                exit(EXIT_FAILURE);
+            }
 
             memcpy(timestamp, CMSG_DATA(cmsg), sizeof(struct sock_timestamp_info));
 
@@ -212,6 +231,7 @@ int main() {
     // Clean memory
     free(cmsg);
     free(iov_buffer);
+    free(control_buffer);
 
     return 0;
 }
